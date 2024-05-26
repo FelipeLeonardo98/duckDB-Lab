@@ -14,7 +14,7 @@ class Logger:
         log_format = "[%(asctime)s] - [%(name)s] - [%(levelname)s] - %(message)s"
         #formatter = logging.Formatter(log_format, datefmt="%Y-%m-%d %H:%M:%S")
 
-        logging.basicConfig(level=logging.DEBUG, format=log_format, datefmt="%Y-%m-%d %H:%M:%S")
+        logging.basicConfig(level=logging.INFO, format=log_format, datefmt="%Y-%m-%d %H:%M:%S")
         
         # Separe output messages, due a log category
         try:

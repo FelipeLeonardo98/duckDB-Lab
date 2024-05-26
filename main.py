@@ -1,9 +1,11 @@
 # internal libraries
 from utils.logs.main import Logger
 from utils.database.main import DuckDBConnection
+from utils.database.duckdb_queries import DuckDBQueries
 # Python libraries
 import json
 import requests
+import duckdb
 
 # Globals variables
 URL_BASE = "https://api.worldbank.org/v2/country/ARG;BOL;BRA;CHL;COL;ECU;GUY;PRY;PER;SUR;URY;VEN/indicator/NY.GDP.MKTP.CD?format=json"
@@ -79,10 +81,32 @@ class ETLProcess():
         Logger.emit(f"Printing gdp_list: {gdp_list}", category="DEBUG")
         return countries_list, gdp_list
 
+    def DataWarehouseMount(connection, countries_list,gdp_list):
+        Logger.emit("Starting Data Warehouse DuckDB mounting")
+        connection.execute('CREATE TABLE IF NOT EXISTS dim_country (id VARCHAR, name VARCHAR, iso3_code VARCHAR, year VARCHAR)')
+        connection.executemany('INSERT INTO dim_country VALUES (?,?,?,?)', countries_list)
+        # DataWarehouse = DuckDBQueries(connection=connection)
+        # DataWarehouse.createDimCountry(dw=connection,countries_list=countries_list)
+        # DataWarehouse.createFactGDP(gdp_list=gdp_list)
+
+    # def DataWarehouseReportTransformation(con):
+    #     Logger.emit("Starting Data Warehouse DuckDB mounting")
+    #     DuckDBQueries.createDimCountry(con=con, countries_list=countries_list)
+    #     DuckDBQueries.createFactGDP(con=con,gdp_list=gdp_list)
+
 if __name__ == "__main__":
     data = ETLProcess.checkAPIresultsAmount()
     countries_list, gdp_list = ETLProcess.APITransformation(data)
     Logger.emit(f"here's the return `gdp_list` from ETLProcess.APITransformation: {countries_list}", category="DEBUG")
     Logger.emit(f"here's the return `countries_list` from ETLProcess.APITransformation: {gdp_list}", category="DEBUG")
+    Logger.emit("Creating DuckDBConnection and Database")
+
+    # Open connnection with database
+    connection = DuckDBConnection("database_data.duckdb")
+    # Process pivot
+    report = connection.processPivotTable()
+    Logger.emit("Printing final report")
+    Logger.emit(report)
+
     
 
