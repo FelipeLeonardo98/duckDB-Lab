@@ -6,10 +6,17 @@ Logger = Logger(__name__)
 class DuckDBConnection():
     def __init__(self, path):
         self.path = path
-        self.connection =  duckdb.connect("database_data.duckdb")
-        #return connection
+        self.connection =  duckdb.connect("database_data.duckdb") 
+        # By default, the solution use a database with data stored.
+        # If you would like to build a database from zero, change the database name OR delete the "database_data.duckdb" OR use a different path.
+        # If you choose a new database, uncomment the "INSERT" queries statements
 
     def createDimCountry(self, countries_list):
+        """
+            Method responsible for create the table `dim_country` on "Data Warehouse" DuckDB.
+            If you want to execute a new database or a new path/file, uncomment the "INSERT" DML statement.
+            By default, the solution it will use the database already saved.
+        """
         try:
             self.connection.execute('CREATE TABLE IF NOT EXISTS dim_country (id VARCHAR, name VARCHAR, iso3_code VARCHAR, year VARCHAR)')
             # connection.executemany('INSERT INTO dim_country VALUES (?,?,?,?)', countries_list) 
@@ -24,10 +31,19 @@ class DuckDBConnection():
             raise ValueError(f"Something happend wrong on `dim_country()` process. Please, try to understand the follow error: {e} . And check the logs information")
         
     def createFactGDP(self, gdp_list):
+        """
+            Method responsible for create the table `fact_gdp` on "Data Warehouse" DuckDB.
+            If you want to execute a new database or a new path/file, uncomment the "INSERT" DML statement.
+            By default, the solution it will use the database already saved.
+        """
         Logger.emit("Creating `fact_gdp` table")
         try:
             self.connection.execute('CREATE TABLE IF NOT EXISTS fact_gdp (country_id VARCHAR, year VARCHAR, value FLOAT);')
             # connection.executemany('INSERT INTO fact_gdp (country_id, year, value) VALUES (?,?,?)', gdp_list)
+            """
+                it was executed once, for uncomment insert lines, we can change the `CREATE TABLE` statement for `CREATE OR REPLACE`
+                or, implement a logic to check date or MAX (id)
+            """
             Logger.emit("Process finished")
             Logger.emit("Closing connection")
             self.connection.close()
@@ -37,6 +53,11 @@ class DuckDBConnection():
             
         
     def processPivotTable(self):
+        """
+            Method responsible for process the final business result, a report with the follow structure:
+            | id | name     | iso3_code | 2019 | 2020 | 2021 | 2022 | 2023 |
+            |----|----------|-----------|------|------|------|------|------|
+        """
         Logger.emit("Starting Pivot query process")
         Logger.emit("Taking the last 5 years")
         
@@ -84,9 +105,5 @@ class DuckDBConnection():
             self.connection.close()
             raise ValueError(f"Error when trying to create refined.business_report, check information: {e}")
         
-        
-
-        
         return report
         
-    

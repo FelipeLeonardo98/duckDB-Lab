@@ -1,7 +1,6 @@
 # internal libraries
 from utils.logs.main import Logger
 from utils.database.main import DuckDBConnection
-from utils.database.duckdb_queries import DuckDBQueries
 # Python libraries
 import json
 import requests
@@ -15,10 +14,14 @@ QUANTITY_PER_PAGE = 0
 Logger = Logger(__name__)
 
 class ETLProcess():
-    # def __init__(self):
-    #     self.total_reponse = None
+    """
+        Class reponsible for manipulating ETL (Extract, Transform and Load) methods
+    """
 
     def checkAPIresultsAmount():
+        """
+            Method responsible for get data from API and make validations
+        """
         Logger.emit("Making request to retrieve total_results")
 
         try:
@@ -48,6 +51,10 @@ class ETLProcess():
         pass
 
     def APITransformation(data):
+        """
+            Method responsible for API Transformations
+            :param json data: json object, should be the API response
+        """
         Logger.emit("Separating the both biggets dictionaries")
         metadata = data[0]
         gdp_data = data[1]
@@ -81,18 +88,6 @@ class ETLProcess():
         Logger.emit(f"Printing gdp_list: {gdp_list}", category="DEBUG")
         return countries_list, gdp_list
 
-    def DataWarehouseMount(connection, countries_list,gdp_list):
-        Logger.emit("Starting Data Warehouse DuckDB mounting")
-        connection.execute('CREATE TABLE IF NOT EXISTS dim_country (id VARCHAR, name VARCHAR, iso3_code VARCHAR, year VARCHAR)')
-        connection.executemany('INSERT INTO dim_country VALUES (?,?,?,?)', countries_list)
-        # DataWarehouse = DuckDBQueries(connection=connection)
-        # DataWarehouse.createDimCountry(dw=connection,countries_list=countries_list)
-        # DataWarehouse.createFactGDP(gdp_list=gdp_list)
-
-    # def DataWarehouseReportTransformation(con):
-    #     Logger.emit("Starting Data Warehouse DuckDB mounting")
-    #     DuckDBQueries.createDimCountry(con=con, countries_list=countries_list)
-    #     DuckDBQueries.createFactGDP(con=con,gdp_list=gdp_list)
 
 if __name__ == "__main__":
     data = ETLProcess.checkAPIresultsAmount()
@@ -107,6 +102,5 @@ if __name__ == "__main__":
     report = connection.processPivotTable()
     Logger.emit("Printing final report")
     Logger.emit(report)
-
+    Logger.emit("END SCRIPT")
     
-
