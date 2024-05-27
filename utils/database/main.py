@@ -17,15 +17,20 @@ class DuckDBConnection():
             If you want to execute a new database or a new path/file, uncomment the "INSERT" DML statement.
             By default, the solution it will use the database already saved.
         """
+        Logger.emit("Creating `dim_country` table")
         try:
-            self.connection.execute('CREATE TABLE IF NOT EXISTS dim_country (id VARCHAR, name VARCHAR, iso3_code VARCHAR, year VARCHAR)')
-            # connection.executemany('INSERT INTO dim_country VALUES (?,?,?,?)', countries_list) 
+            self.connection.execute('CREATE TABLE IF NOT EXISTS dim_country (id VARCHAR PRIMARY KEY, name VARCHAR, iso3_code VARCHAR, year VARCHAR)')
+            self.connection.executemany('INSERT INTO dim_country VALUES (?,?,?,?)\
+                                         ON CONFLICT DO UPDATE SET\
+                                         name = EXCLUDED.name,\
+                                         iso3_code = EXCLUDED.iso3_code,\
+                                         year = EXCLUDED.year', countries_list) 
             """
                 it was executed once, for uncomment insert lines, we can change the `CREATE TABLE` statement for `CREATE OR REPLACE`
                 or, implement a logic to check date or MAX (id)
             """
-            Logger.emit("Closing connection")
-            self.connection.close()
+            Logger.emit("Process finished")
+           #self.connection.close()
         except Exception as e:
             self.connection.close()
             raise ValueError(f"Something happend wrong on `dim_country()` process. Please, try to understand the follow error: {e} . And check the logs information")
@@ -38,15 +43,15 @@ class DuckDBConnection():
         """
         Logger.emit("Creating `fact_gdp` table")
         try:
-            self.connection.execute('CREATE TABLE IF NOT EXISTS fact_gdp (country_id VARCHAR, year VARCHAR, value FLOAT);')
-            # connection.executemany('INSERT INTO fact_gdp (country_id, year, value) VALUES (?,?,?)', gdp_list)
+            self.connection.execute('CREATE OR REPLACE TABLE fact_gdp (country_id VARCHAR, year VARCHAR, value FLOAT);')
+            self.connection.executemany('INSERT INTO fact_gdp VALUES (?,?,?)', gdp_list)
             """
                 it was executed once, for uncomment insert lines, we can change the `CREATE TABLE` statement for `CREATE OR REPLACE`
                 or, implement a logic to check date or MAX (id)
             """
             Logger.emit("Process finished")
             Logger.emit("Closing connection")
-            self.connection.close()
+            #self.connection.close()
         except Exception as e:
             self.connection.close()
             raise ValueError(f"Something happend wrong on `createFactGDP()` process. Please, try to understand the follow error: {e} . And check the logs information")
@@ -100,6 +105,7 @@ class DuckDBConnection():
             report = self.connection.query("SELECT * FROM refined.business_report;").show()
 
             Logger.emit("Closing connection")
+            self.connection.close()
             
         except Exception as e:
             self.connection.close()

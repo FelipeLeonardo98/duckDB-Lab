@@ -98,6 +98,11 @@ if __name__ == "__main__":
 
     # Open connnection with database
     connection = DuckDBConnection("database_data.duckdb")
+
+    Logger.emit("Creating tables `dim_country` and `fact_gdp`")
+    connection.createDimCountry(countries_list=countries_list)
+    connection.createFactGDP(gdp_list=gdp_list)
+
     # Process pivot
     report = connection.processPivotTable()
     Logger.emit("Printing final report")

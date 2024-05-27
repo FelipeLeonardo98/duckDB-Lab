@@ -2,3 +2,7 @@
 Pipfile.lock
 laboratoryDuckDB/*
 *__pycache__*
+
+# DuckDB data
+database_data.duckdb
+*.duckdb
