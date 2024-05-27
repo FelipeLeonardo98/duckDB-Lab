@@ -1,0 +1,25 @@
+name: Container Pipeline [PRODUCTION]
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  DeployProduction:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository Checkout
+        uses: actions/checkout@v2
+
+      - name: Print Commit HASH
+        run: echo $(shell git log -1 --format=%h)
+      
+      - name: Deploy Docker Image
+        uses: mr-smithers-excellent/docker-build-push@v5
+        with:
+          image: felipeleonardo/prd-lab-duckdb
+          tags: $(echo ${GITHUB_SHA} | cut -c1-8)
+          registry: docker.io
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
